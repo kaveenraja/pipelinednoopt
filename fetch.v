@@ -8,10 +8,12 @@
 module fetch (// Outputs
    pcOUT, instruction,
    // Inputs
-   pcIN, clk, rst);
+   pcIN, pcwren, pcselect, clk, rst);
 
 	// IN/OUT
 	input  [15:0] pcIN;
+	input  		  pcwren;
+	input 		  pcselect;
 	input 		  clk;
 	input 		  rst;
 
@@ -19,14 +21,16 @@ module fetch (// Outputs
 	output [15:0] instruction;
 
 	// WIRES
-	wire [15:0]   rst_pc;
+	wire [15:0]   pc_reg_in;
 	wire [15:0]   pc_reg_out;
 	wire		  adder_cout;
 	
 
 	// MAIN
 
-	register #(16) pc_reg(.in(pcIN), .out(pc_reg_out), .wr(1'b1), .clk(clk), .rst(rst));
+	mux2_1 mux0[15:0](.a(adder_cout), .b(pcIN), .s({16{noppcselect}}), .out(pc_reg_in));
+
+	register #(16) pc_reg(.in(pc_reg_in), .out(pc_reg_out), .wr(pcwren), .clk(clk), .rst(rst));
 
 	fulladder16 FA1 (.A(pc_reg_out), .B(16'h0002), .S(pcOUT), .Cout(adder_cout));
 

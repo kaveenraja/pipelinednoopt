@@ -6,11 +6,12 @@
 */
 
 module execute (// Outputs
-	Out0, Out3, ALUOut, PCwb,
+	Out0, Out3, ALUOut, PCwb, pcwrite,
  	// Inputs
-  	PC, to_ALUOP, func, Reg1, Reg2, Imm5, Imm8, Imm11, BSrc, brin, ALUJmp, ImmSrc);
+  	instr, PC, to_ALUOP, func, Reg1, Reg2, Imm5, Imm8, Imm11, BSrc, brin, ALUJmp, ImmSrc);
 
   	// IN/OUT
+	input [15:0] 	instr;
 	input [15:0]	PC;
 	input [4:0]		to_ALUOP;
 	input [1:0] 	func;
@@ -28,6 +29,7 @@ module execute (// Outputs
 	output [15:0]	Out3;
 	output [15:0]	ALUOut;
 	output [15:0]   PCwb;
+	output 			pcwrite;
 	
 	// WIRE
 	
@@ -69,6 +71,8 @@ module execute (// Outputs
 
 	mux2_1 mux1[15:0](.a(PC), .b(internal_pcimpjmp), .s({16{internal_BR}}), .out(internal_pc_preALUJmp));
 	mux2_1 mux2[15:0](.a(internal_pc_preALUJmp), .b(ALUOut), .s({16{ALUJmp}}), .out(PCwb));
+
+	assign pcwrite = (instr[15:11] === 5'b01100) | (instr[15:11] === 5'b01101) | (instr[15:11] === 5'b01110) | (instr[15:11] === 5'b01111) | (instr[15:11] === 5'b00100) | (instr[15:11] === 5'b00101) | (instr[15:11] === 5'b00110) | (instr[15:11] === 5'b00111);
 
 	
 	assign Out0 = PC;

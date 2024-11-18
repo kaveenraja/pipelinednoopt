@@ -7,14 +7,16 @@
 
 module decode (
    	// Outputs
-  	Imm5, Imm8, Imm11, Reg1, Reg2, RegSrc, to_ALUOP, func, Bsrc, brin, MemWrt, ALUJmp, ImmSrc, err, 
+  	Imm5, Imm8, Imm11, Reg1, Reg2, RegSrc, to_ALUOP, func, Bsrc, brin, RegWrt_out, RegDst_out, MemWrt, ALUJmp, ImmSrc, RegDst_addr, err,
    	// Inputs
-   	Instruction, wbdata, clk, rst
+   	Instruction, wbdata, RegWrt_in, RegDst_in, clk, rst
    	);
 
    	// IN/OUT
 	input   [15:0] Instruction;
 	input 	[15:0] wbdata;
+	input		   RegWrt_in;
+	input	[1:0]  RegDst_in;
 	input		   clk;
 	input		   rst;
 
@@ -28,14 +30,15 @@ module decode (
 	output 	[1:0]  func;
 	output 	[1:0]  Bsrc;
 	output 	[4:0]  brin;
+	output		   RegWrt_out;
+	output	[1:0]  RegDst_out;
 	output 		   MemWrt;
 	output 		   ALUJmp;
 	output 		   ImmSrc;
 	output 		   err;
+	output  [2:0]  RegDst_addr;
 
 	// WIRE
-	wire [1:0]     RegDst;
-	wire 	       RegWrt;
 	wire           _0ext;
 
 	wire [15:0]	   imm5_zero;
@@ -50,7 +53,7 @@ module decode (
 	wire [2:0]	   wrReg;
 
 	// INSTRUCTION DECODER
-	instr_decoder ID1(.instr(Instruction[15:11]), .RegDst(RegDst), .RegSrc(RegSrc), .to_ALUOP(to_ALUOP), ._0ext(_0ext), .RegWrt(RegWrt), .Bsrc(Bsrc), .brin(brin), .MemWrt(MemWrt), .ALUJmp(ALUJmp), .ImmSrc(ImmSrc));
+	instr_decoder ID1(.instr(Instruction[15:11]), .RegDst(RegDst_out), .RegSrc(RegSrc), .to_ALUOP(to_ALUOP), ._0ext(_0ext), .RegWrt(RegWrt_out), .Bsrc(Bsrc), .brin(brin), .MemWrt(MemWrt), .ALUJmp(ALUJmp), .ImmSrc(ImmSrc));
 	assign func = Instruction[1:0];
 
 	// IMMEDIATE VALUES
@@ -67,8 +70,8 @@ module decode (
 	mux2_1 mux2[15:0](.a(imm11_sign), .b(imm11_zero), .s({16{_0ext}}), .out(Imm11));
 
 	// REG
-	ecmux4_1 mux3[2:0](.a(Instruction[7:5]), .b(Instruction[10:8]), .c(Instruction[4:2]), .d({3{1'b1}}), .s({3{RegDst}}), .out(wrReg));
-	regFile_bypass #(16) regFile0(.read1RegSel(Instruction[10:8]), .read2RegSel(Instruction[7:5]), .writeRegSel(wrReg), .writeData(wbdata), .writeEn(RegWrt), .clk(clk), .rst(rst), .read1Data(Reg1), .read2Data(Reg2), .err(err));
-   
+	ecmux4_1 mux3[2:0](.a(Instruction[7:5]), .b(Instruction[10:8]), .c(Instruction[4:2]), .d({3{1'b1}}), .s({3{RegDst_in}}), .out(wrReg));
+	regFile_bypass #(16) regFile0(.read1RegSel(Instruction[10:8]), .read2RegSel(Instruction[7:5]), .writeRegSel(wrReg), .writeData(wbdata), .writeEn(RegWrt_in), .clk(clk), .rst(rst), .read1Data(Reg1), .read2Data(Reg2), .err(err));
+    assign RegDst_addr = wrReg;
 endmodule
 
