@@ -9,14 +9,15 @@ module decode (
    	// Outputs
   	Imm5, Imm8, Imm11, Reg1, Reg2, RegSrc, to_ALUOP, func, Bsrc, brin, RegWrt_out, RegDst_out, MemWrt, ALUJmp, ImmSrc, RegDst_addr, err,
    	// Inputs
-   	Instruction, wbdata, RegWrt_in, RegDst_in, clk, rst
+   	Instruction, wbdata, RegWrt_in, RegDst_in, RegDst_addr_in, clk, rst
    	);
 
    	// IN/OUT
 	input   [15:0] Instruction;
 	input 	[15:0] wbdata;
 	input		   RegWrt_in;
-	input	[1:0]  RegDst_in;
+	input [1:0]    RegDst_in;
+	input [2:0]    RegDst_addr_in;
 	input		   clk;
 	input		   rst;
 
@@ -50,7 +51,8 @@ module decode (
 	wire [15:0]	   imm11_zero;
 	wire [15:0]	   imm11_sign;
 
-	wire [2:0]	   wrReg;
+
+	wire [2:0]	   wrReg_out;
 
 	// INSTRUCTION DECODER
 	instr_decoder ID1(.instr(Instruction[15:11]), .RegDst(RegDst_out), .RegSrc(RegSrc), .to_ALUOP(to_ALUOP), ._0ext(_0ext), .RegWrt(RegWrt_out), .Bsrc(Bsrc), .brin(brin), .MemWrt(MemWrt), .ALUJmp(ALUJmp), .ImmSrc(ImmSrc));
@@ -70,8 +72,10 @@ module decode (
 	mux2_1 mux2[15:0](.a(imm11_sign), .b(imm11_zero), .s({16{_0ext}}), .out(Imm11));
 
 	// REG
-	ecmux4_1 mux3[2:0](.a(Instruction[7:5]), .b(Instruction[10:8]), .c(Instruction[4:2]), .d({3{1'b1}}), .s({3{RegDst_in}}), .out(wrReg));
-	regFile_bypass #(16) regFile0(.read1RegSel(Instruction[10:8]), .read2RegSel(Instruction[7:5]), .writeRegSel(wrReg), .writeData(wbdata), .writeEn(RegWrt_in), .clk(clk), .rst(rst), .read1Data(Reg1), .read2Data(Reg2), .err(err));
-    assign RegDst_addr = wrReg;
+	regFile_bypass #(16) regFile0(.read1RegSel(Instruction[10:8]), .read2RegSel(Instruction[7:5]), .writeRegSel(RegDst_addr_in), .writeData(wbdata), .writeEn(RegWrt_in), .clk(clk), .rst(rst), .read1Data(Reg1), .read2Data(Reg2), .err(err));
+    
+	ecmux4_1 mux4[2:0](.a(Instruction[7:5]), .b(Instruction[10:8]), .c(Instruction[4:2]), .d({3{1'b1}}), .s({3{RegDst_out}}), .out(wrReg_out));
+	assign RegDst_addr = wrReg_out;
+
 endmodule
 

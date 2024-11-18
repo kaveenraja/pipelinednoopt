@@ -134,7 +134,7 @@ module proc_hier_pbench();
    assign RegWrite = DUT.p0.MEM_WB_RegWrt_out;
    // Is register file being written to, one bit signal (1 means yes, 0 means no)
    //    
-   assign WriteRegister = DUT.p0.decode0.wrReg;
+   assign WriteRegister = DUT.p0.decode0.RegDst_addr_in;
    // The name of the register being written to. (3 bit signal)
    
    assign WriteData = DUT.p0.wb_data;
@@ -172,7 +172,7 @@ module proc_hier_pbench();
    // Signal indicating a valid data cache hit
    // Above assignment is a dummy example
    
-   assign Halt = DUT.p0.fetch0.instruction[15:11] === 5'b00000 ;
+   assign Halt = (DUT.p0.fetch0.instruction[15:11] === 5'b00000) & (DUT.p0.IF_ID_instr_out[15:11] === 5'b00000) & (DUT.p0.ID_EX_instr_out[15:11] === 5'b00000) & (DUT.p0.EX_MEM_instr_out[15:11] === 5'b00000) & (DUT.p0.MEM_WB_instr_out[15:11] === 5'b00000);
    // Processor halted
    
    

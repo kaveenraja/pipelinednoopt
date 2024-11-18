@@ -28,7 +28,7 @@ module fetch (// Outputs
 
 	// MAIN
 
-	mux2_1 mux0[15:0](.a(adder_cout), .b(pcIN), .s({16{noppcselect}}), .out(pc_reg_in));
+	mux2_1 mux0[15:0](.a(pcOUT), .b(pcIN), .s({16{pcselect}}), .out(pc_reg_in));
 
 	register #(16) pc_reg(.in(pc_reg_in), .out(pc_reg_out), .wr(pcwren), .clk(clk), .rst(rst));
 
